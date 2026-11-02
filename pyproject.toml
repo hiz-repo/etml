@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "etml-draft"
+version = "0.1.0"
+description = "Source-preserving parser for the ETML minimum syntax specification"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+etml = "etml.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
