@@ -50,7 +50,7 @@ The parser implements the [minimum syntax specification](spec/spec.md): multiple
 
 **Additional emotion elements and richer annotations are planned.** The vocabulary, specification, and implementation will continue to evolve as development proceeds.
 
-The implementation uses Python's standard library. Errors include a category and source location. Semantic validation remains unavailable and returns exit code `3`.
+The implementation uses Python's standard library. Input diagnostics include a category and byte offset, with line and column when available. `validate --level semantic` reports `unavailable` and returns exit code `3`.
 
 ## A first look
 
@@ -89,14 +89,14 @@ PYTHONPATH=src python3 -m etml roundtrip examples/mikan.etml -o /tmp/mikan-copy.
 
 `text` reports text slots in source order, including separate `notes` header text. `roundtrip` writes bytes to stdout when `-o` is omitted. Exit codes are `0` for success, `1` for invalid input or a processing limit, `2` for CLI or I/O errors, and `3` for unavailable semantic validation (`validate --level semantic`).
 
-The Python API is also available:
+For the Python API, start an interpreter from the repository root with `PYTHONPATH=src python3`:
 
 ```python
 from pathlib import Path
-from etml import parse
+from etml import Limits, parse
 
 source = Path("examples/mikan.etml").read_bytes()
-work = parse(source)
+work = parse(source, limits=Limits())
 assert work.serialize() == source
 for unit in work.units:
     print(unit.root.attributes["lang"])
@@ -104,7 +104,7 @@ for slot in work.text_slots():
     print(slot.kind, slot.value, slot.span)
 ```
 
-Parsed nodes and header parts are immutable. Source ranges use half-open UTF-8 byte offsets; whitespace, LF/CRLF/CR, and an optional leading BOM are preserved. Default implementation limits are **1 MiB**, **256 nested elements**, and **10,000 nodes**. The Python API accepts `parse(data, limits=Limits(...))` to configure these limits.
+Parsed nodes and header parts are immutable. Source ranges use half-open UTF-8 byte offsets; whitespace, LF/CRLF/CR, and an optional leading BOM are preserved. Default implementation limits are **1 MiB**, **256 nested elements**, and **10,000 nodes**. `Limits` configures Python API limits; the CLI uses the defaults.
 
 Run the tests with `make test`, and check the annotated stories with `make example`.
 
@@ -113,9 +113,9 @@ Run the tests with `make test`, and check the annotated stories with `make examp
 | File | Contents | Text rights |
 | --- | --- | --- |
 | [mikan.etml](examples/mikan.etml) | 芥川龍之介, *蜜柑* (*Mikan*), annotated Japanese text | Public domain in Japan; [source details](examples/README.md#mikan) |
-| [the_gift_of_the_magi.etml](examples/the_gift_of_the_magi.etml) | O. Henry, *The Gift of the Magi*, annotated original English text | Public domain in the USA; [source details](examples/README.md#the-gift-of-the-magi) |
+| [the_gift_of_the_magi.etml](examples/the_gift_of_the_magi.etml) | O. Henry, *The Gift of the Magi*, annotated English text | Public domain in the USA; [source details](examples/README.md#the-gift-of-the-magi) |
 
-The two stories include editorial emotion and narrative annotations. Check them with `python3 scripts/check_story_examples.py --tests`; add `--show` to inspect the ranges. Their [source acknowledgements and adaptation notes](examples/README.md) distinguish the original texts from project-authored markup.
+The two stories include editorial emotion and narrative annotations. Run `python3 scripts/check_story_examples.py --tests` to validate structure, compare prose with the hashes stored in the script, verify lossless serialization, and run the test suite. Add `--show` to inspect the ranges. See [source credits and rights](examples/README.md).
 
 ## Specification
 
@@ -123,8 +123,8 @@ The [language specification](spec/spec.md) is written in English Markdown and de
 
 ## License and attribution
 
-The project's code, documentation, original examples, and project-authored ETML markup are available under the [MIT License](LICENSE).
+The project's code, documentation, and project-authored ETML markup are available under the [MIT License](LICENSE).
 
-The underlying public-domain story texts retain their existing status. See [example attribution and rights information](examples/README.md) for authors, source editions, production credits, territorial scope, and adaptation details.
+The underlying public-domain story texts retain their existing status. See [example attribution and rights information](examples/README.md) for authors, sources, production credits, and territorial scope.
 
 <sub>An independent, unofficial project inspired by <em>Harmony</em>.</sub>
